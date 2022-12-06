@@ -11,12 +11,13 @@ class Cell:
         self.pygame = pygame
         self.screen = screen
         self.sketched_value = 0
+        self.editable = True if value == 0 else False
 
     def set_cell_value(self, value):
         self.value = value
 
     def set_sketched_value(self, value):
-        self.sketched_value = value
+        self.value = value
 
     def draw(self):
         top_left = (self.row * 67, self.col * 67)
@@ -30,7 +31,7 @@ class Cell:
         self.pygame.draw.line(self.screen, self.color, bottom_left, top_left, 2)
 
         # Value
-        if self.value != 0 and self.sketched_value == 0:
+        if not self.editable:
             font = self.pygame.font.SysFont("font", 30)
             text = font.render(str(self.value), True, (0, 0, 0), BG_COLOR)
             text_rec = text.get_rect()
@@ -39,24 +40,16 @@ class Cell:
             self.screen.blit(text, text_rec)
 
         # Sketched value
-        if self.sketched_value != 0:
+        if self.editable:
+            if self.value != 0:
+                color = (100, 100, 100)
+            else:
+                color = BG_COLOR
             font = self.pygame.font.SysFont("font", 20)
-            text = font.render(str(self.sketched_value), True, (100, 100, 100), BG_COLOR)
+            text = font.render(str(self.value), True, color, BG_COLOR)
             text_rec = text.get_rect()
             text_rec.center = (self.row * 67 + 10, self.col * 67 + 10)
 
             self.screen.blit(text, text_rec)
-        else:
-            # Draw over the current sketch value with the background color to reset it
-            font = self.pygame.font.SysFont("font", 20)
-            text = font.render(str(self.sketched_value), True, BG_COLOR, BG_COLOR)
-            text_rec = text.get_rect()
-            text_rec.center = (self.row * 67 + 10, self.col * 67 + 10)
-
-            self.screen.blit(text, text_rec)
-
-
-
-
 
 

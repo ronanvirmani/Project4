@@ -67,16 +67,18 @@ def startup_loop():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse = pygame.mouse.get_pos()
 
+                print(mouse[0], mouse[1])
+
                 # If easy button is clicked
-                if 174 <= mouse[0] <= 227 and 391 <= mouse[1] <= 409:
+                if 174 <= mouse[0] <= 227 and 427 <= mouse[1] <= 447:
                     game_mode = 0
                     return game_mode
                 # If medium button is clicked
-                elif 260 <= mouse[0] <= 341 and 391 <= mouse[1] <= 409:
+                elif 260 <= mouse[0] <= 341 and 427 <= mouse[1] <= 447:
                     game_mode = 1
                     return game_mode
                 # If hard button is pressed
-                elif 373 <= mouse[0] <= 429 and 391 <= mouse[1] <= 409:
+                elif 373 <= mouse[0] <= 429 and 427 <= mouse[1] <= 447:
                     game_mode = 2
                     return game_mode
 
@@ -176,22 +178,16 @@ def game_loop(sudoku, board, deleted, win_state):
                         current_cell.color = (255, 0, 0)
                         current_cell.draw()
 
-                print(mouse[0], mouse[1])
-
                 # Reset button clicked
                 if 169 <= mouse[0] <= 232 and 633 <= mouse[1] <= 654:
                     for cell in cells:
-                        if cell.sketched_value != 0:
-                            cell.set_cell_value(0)
-                            cell.set_sketched_value(0)
+                        if cell.editable:
+                            cell.value = 0
                             cell.draw()
 
                 # Restart button clicked
                 if 256 <= mouse[0] <= 346 and 633 <= mouse[1] <= 653:
-                    new_sudoku = SudokuGenerator(9, deleted)
-                    new_sudoku.fill_values()
-                    new_sudoku.remove_cells()
-                    board = new_sudoku.get_board()
+                    return main()
 
                 # Exit button clicked
                 if 378 <= mouse[0] <= 426 and 634 <= mouse[1] <= 653:
@@ -205,27 +201,105 @@ def game_loop(sudoku, board, deleted, win_state):
                     current_cell.draw()
                     user_text = ""
 
-        win = True
-        # Check for game win
+        # Check for game win if all spaces filled
+        all_filled = True
+        current_board = []
         for i in range(len(board)):
+            current_board.append([])
             for j in range(len(board[0])):
-                if board[i][j] != win_state[i][j]:
-                    win = False
+                current_board[i].append(cells[i * 9 + j].value)
+                if cells[i * 9 + j].value == 0:
+                    all_filled = False
+                    break
 
-        if win:
-            print("WIN")
-            return
+        if all_filled:
+            if current_board == win_state:
+                # Game won
+                return win_loop()
+            else:
+                # Game lost
+                return loss_loop()
 
         pygame.display.update()
 
 
-def restart(sudoku, deleted):
-    new_sudoku = SudokuGenerator(9, deleted)
-    new_sudoku.fill_values()
-    new_sudoku.remove_cells()
-    board = new_sudoku.get_board()
+def draw_loss():
+    font = pygame.font.SysFont("font", 72)
 
-    return board
+    screen.fill(BG_COLOR)
+
+    # Welcome font
+    text_game_over = font.render("Game Over :(", True, (0, 0, 0))
+    text_game_over_rect = text_game_over.get_rect()
+    text_game_over_rect.center = (WIDTH // 2, HEIGHT // 2 - 100)
+
+    screen.blit(text_game_over, text_game_over_rect)
+
+    # Gamemode text
+    font = pygame.font.SysFont("font", 40)
+
+    text_restart = font.render("RESTART", True, (255, 255, 255,), (0, 0, 0))
+    text_restart_rect = text_restart.get_rect()
+    text_restart_rect.center = (WIDTH // 2, HEIGHT // 2 + 100)
+
+    screen.blit(text_restart, text_restart_rect)
+
+def loss_loop():
+    draw_loss()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse = pygame.mouse.get_pos()
+
+                # Restart button clicked
+                if 237 <= mouse[0] <= 365 and 425 <= mouse[1] <= 451:
+                    return main()
+
+        pygame.display.update()
+
+
+def draw_win():
+    font = pygame.font.SysFont("font", 72)
+
+    screen.fill(BG_COLOR)
+
+    # Welcome font
+    text_game_win = font.render("Game Won!", True, (0, 0, 0))
+    text_game_win_rect = text_game_win.get_rect()
+    text_game_win_rect.center = (WIDTH // 2, HEIGHT // 2 - 100)
+
+    screen.blit(text_game_win, text_game_win_rect)
+
+    # Gamemode text
+    font = pygame.font.SysFont("font", 40)
+
+    text_exit = font.render("EXIT", True, (255, 255, 255,), (0, 0, 0))
+    text_exit_rect = text_exit.get_rect()
+    text_exit_rect.center = (WIDTH // 2, HEIGHT // 2 + 100)
+
+    screen.blit(text_exit, text_exit_rect)
+
+
+def win_loop():
+    draw_win()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse = pygame.mouse.get_pos()
+
+                # Exit button clicked
+                if 268 <= mouse[0] <= 334 and 425 <= mouse[1] <= 451:
+                    return
+
+        pygame.display.update()
 
 
 def print_board(board):
@@ -233,6 +307,7 @@ def print_board(board):
         for element in row:
             print(element, "", end="")
         print()
+
 
 def main():
     game_mode = startup_loop()
@@ -258,8 +333,6 @@ def main():
     board = sudoku.get_board()
 
     print_board(win_state)
-    print()
-    print_board(board)
 
     game_loop(sudoku, board, deleted, win_state)
 
